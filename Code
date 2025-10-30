@@ -1,0 +1,50 @@
+import os
+from PIL import Image
+
+def resize_images(input_folder, output_folder=None, width=800, height=600, output_format='JPEG'):
+    """
+    Resize all images in the input folder and save them in the output folder.
+    
+    Args:
+    - input_folder (str): Path to the folder containing images.
+    - output_folder (str, optional): Path to save resized images. If None, saves in input_folder with '_resized' suffix.
+    - width (int): Target width for resizing.
+    - height (int): Target height for resizing.
+    - output_format (str): Format to save images (e.g., 'JPEG', 'PNG').
+    """
+    if output_folder is None:
+        output_folder = os.path.join(input_folder, 'resized_images')
+    
+    os.makedirs(output_folder, exist_ok=True)
+    
+    # Supported image extensions
+    image_extensions = {'.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff'}
+    
+    for filename in os.listdir(input_folder):
+        if any(filename.lower().endswith(ext) for ext in image_extensions):
+            input_path = os.path.join(input_folder, filename)
+            # Generate output filename
+            name, ext = os.path.splitext(filename)
+            output_filename = f"{name}_resized.{output_format.lower()}"
+            output_path = os.path.join(output_folder, output_filename)
+            
+            try:
+                with Image.open(input_path) as img:
+                    # Resize image
+                    resized_img = img.resize((width, height), Image.Resampling.LANCZOS)
+                    # Convert to RGB if necessary (for JPEG)
+                    if output_format.upper() == 'JPEG' and resized_img.mode != 'RGB':
+                        resized_img = resized_img.convert('RGB')
+                    # Save
+                    resized_img.save(output_path, output_format, quality=95)
+                    print(f"Resized and saved: {output_filename}")
+            except Exception as e:
+                print(f"Error processing {filename}: {e}")
+
+# Example usage
+if __name__ == "__main__":
+    input_folder = input("Enter the path to the input folder: ").strip()
+    if os.path.exists(input_folder):
+        resize_images(input_folder)
+    else:
+        print("Input folder does not exist.")
